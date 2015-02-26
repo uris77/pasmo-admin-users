@@ -1,5 +1,5 @@
 (defproject pasmo-admin-users "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "User Management for PASMO apps."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -12,13 +12,24 @@
                  [reagent-forms "0.4.3"]
                  [reagent-utils "0.1.2"]
                  [secretary "1.2.1"]
+                 [com.novemberain/monger "2.0.0"]
                  [org.clojure/clojurescript "0.0-2850" :scope "provided"]
-                 [ring "1.3.2"]
-                 [ring/ring-defaults "0.1.3"]
-                 [prone "0.8.0"]
+                 [ring "1.3.2" :exclusions [org.eclipse.jetty/jetty-http org.eclipse.jetty/jetty-continuation]]
                  [compojure "1.3.2"]
+                 [ring/ring-defaults "0.1.3"]
+                 [ring/ring-codec "1.0.0"]
+                 [ring/ring-json "0.1.2"]
+                 [hiccup "1.0.5"]
+                 [prone "0.8.0"]
                  [selmer "0.8.0"]
-                 [environ "1.0.0"]]
+                 [environ "1.0.0"]
+                 [http-kit "2.1.16"]
+                 [org.clojure/core.cache "0.6.4"]
+                 [cheshire "5.3.1"]
+                 [clj-http "1.0.1"]
+                 [com.cemerick/friend "0.2.0" :exclusions [ring/ring-core org.clojure/core.cache org.apache.httpcomponents/httpclient]]
+                 [friend-oauth2 "0.1.3" :exclusions [commons-logging org.apache.httpcomponents/httpcore]]
+                 [lib-noir "0.9.5"]]
 
   :plugins [
             [lein-cljsbuild "1.0.4"]
@@ -26,7 +37,7 @@
             [lein-ring "0.9.1"]
             [lein-asset-minifier "0.2.2"]]
 
-  :ring {:handler pasmo-admin-users.handler/app
+  :ring {:handler pasmo-admin-users.handler/site-and-api
          :uberwar-name "pasmo-admin-users.war"}
 
   :min-lein-version "2.5.0"
@@ -49,7 +60,7 @@
                                         :optimizations :none
                                         :pretty-print  true}}}}
 
-  :profiles {:dev {:repl-options {:init-ns pasmo-admin-users.handler
+  :profiles {:dev-common {:repl-options {:init-ns pasmo-admin-users.handler
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
                    :dependencies [[ring-mock "0.1.5"]
@@ -67,17 +78,23 @@
                                 (pjstadig.humane-test-output/activate!)]
 
                    :figwheel {:http-server-root "public"
-                              :server-port 3449
+                              :server-port 3000
                               :css-dirs ["resources/public/css"]
-                              :ring-handler pasmo-admin-users.handler/app}
+                              :ring-handler pasmo-admin-users.handler/site-and-api}
 
                    :env {:dev? true}
 
                    :cljsbuild {:builds {:app {:source-paths ["env/dev/cljs"]
-                                              :compiler {   :main "pasmo-admin-users.dev"
-                                                         :source-map true}}
-}
-}}
+                                              :compiler {:main "pasmo-admin-users.dev"
+                                                         :source-map true}}}}}
+             :dev-env-vars {}
+             :dev [:dev-common :dev-env-vars]
+
+             :test-common {
+                           :dependencies [[leiningen "2.5.1"]]
+                           :env {:test? true}}
+             :test-env-vars {}
+             :test [:test-common :test-env-vars]
 
              :uberjar {:hooks [leiningen.cljsbuild minify-assets.plugin/hooks]
                        :env {:production true}
