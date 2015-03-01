@@ -13,9 +13,8 @@
             (cemerick.friend [workflows :as workflows]
                              [credentials :as creds])
             [pasmo-admin-users.site-handlers :as site-handlers]
-            [pasmo-admin-users.site-handlers :refer [credential-fn]]
             [hiccup.page :as h]
-            [pasmo-admin-users.auth-config :refer [client-config uri-config]]))
+            [pasmo-admin-users.auth-config :refer [client-config uri-config credential-fn]]))
 
 (def site-app
   (-> site-handlers/site-routes

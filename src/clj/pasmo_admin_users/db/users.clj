@@ -15,3 +15,7 @@
     (if (nil? user)
       (coll/insert db "users" {:name email :admin admin :apps apps}))))
 
+(defn add-api-token [email token]
+  (let [user (find-user email)]
+    (if (not (nil? user))
+      (coll/update-by-id db "users" (:id user) {:api-token token}))))
