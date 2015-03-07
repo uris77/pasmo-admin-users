@@ -27,6 +27,8 @@
                  [org.clojure/core.cache "0.6.4"]
                  [cheshire "5.3.1"]
                  [clj-http "1.0.1"]
+                 [cljs-ajax "0.3.10"]
+                 [json-html "0.2.8"]
                  [com.cemerick/friend "0.2.0" :exclusions [ring/ring-core org.clojure/core.cache org.apache.httpcomponents/httpclient]]
                  [friend-oauth2 "0.1.3" :exclusions [commons-logging org.apache.httpcomponents/httpcore]]
                  [lib-noir "0.9.5"]]
@@ -78,7 +80,7 @@
                                 (pjstadig.humane-test-output/activate!)]
 
                    :figwheel {:http-server-root "public"
-                              :server-port 3000
+                              :server-port 3449
                               :css-dirs ["resources/public/css"]
                               :ring-handler pasmo-admin-users.handler/site-and-api}
 
