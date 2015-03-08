@@ -3,6 +3,7 @@
             [compojure.route :refer [not-found resources]]
             [compojure.handler :as handler]
             [ring.middleware.defaults :refer [site-defaults wrap-defaults]]
+            [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.util.codec :as codec]
             [ring.util.response :as resp]
             [selmer.parser :refer [render-file]]
@@ -13,7 +14,9 @@
             (cemerick.friend [workflows :as workflows]
                              [credentials :as creds])
             [pasmo-admin-users.site-handlers :as site-handlers]
+            [pasmo-admin-users.api-handlers :as api-handlers]
             [hiccup.page :as h]
+            [cheshire.core :refer :all]
             [pasmo-admin-users.auth-config :refer [client-config uri-config credential-fn]]))
 
 (def site-app
@@ -31,7 +34,14 @@
                                           })]})
       handler/site))
 
+(defn api-app [] 
+  (cheshire.generate/add-encoder org.bson.types.ObjectId cheshire.generate/encode-str)
+  (->> api-handlers/api-routes
+       (handler/api)
+       (wrap-json-body)
+       (wrap-json-response)))
+
 (def site-and-api
-  (wrap-defaults (routes site-app) (assoc-in site-defaults [:security :anti-forgery] false)))
+  (wrap-defaults (routes (api-app) site-app) (assoc-in site-defaults [:security :anti-forgery] false)))
 
 

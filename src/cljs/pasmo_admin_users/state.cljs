@@ -5,6 +5,7 @@
 ;; Application State
 
 (def new-user (atom {:doc {} :errors {}}))
+(def users (atom []))
 
 (defn set-value! [id value]
   (swap! new-user assoc :saved? false)

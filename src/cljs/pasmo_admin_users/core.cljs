@@ -21,28 +21,7 @@
   [:div [:h2 "About pasmo-admin-users"]
    [:div [:a {:href "#/"} "go to the home page"]]])
 
-
 ;; -------------------------
-;; User Listing
-(defn fetched-users [response]
-  (.log js/console "RESPONSE: " response))
-
-(defn show-users-list []
-  [:table {:css "pure-table pure-table-striped"}
-   [:thead
-    [:tr
-     [:th "Email"]
-     [:th "Name"]
-     [:th ""]]]
-   [:tbody
-    [:tr
-     [:td "uris77@gmail.com"]
-     [:td "Roberto Uris Guerra"]
-     [:td ""]]]])
-
-(defn b-form [doc body]
-  [:div
-   (into [:div] body)])
 
 (defn current-page []
   [:div [(session/get :current-page)]])
@@ -52,15 +31,17 @@
 (secretary/set-config! :prefix "#")
 
 (secretary/defroute "/" []
-  (session/put! :current-page #'show-users-list))
+  (users-list/fetch-all)
+  (session/put! :current-page #'users-list/show-users-list))
 
 (secretary/defroute "/about" []
   (session/put! :current-page #'about-page))
 
-(secretary/defroute "/users" []
-  (session/put! :current-page #'show-users-list))
+(secretary/defroute "/list" []
+  (users-list/fetch-all)
+  (session/put! :current-page #'users-list/show-users-list))
 
-(secretary/defroute "/users/create" []
+(secretary/defroute "/create" []
   (session/put! :current-page #'user-create/create-user-form))
 
 ;; -------------------------
@@ -78,7 +59,6 @@
 ;; Initialize app
 (defn init! []
   (hook-browser-navigation!)
-  (users-list/fetch-all fetched-users)
   (reagent/render-component [current-page] (.getElementById js/document "app")))
 
 

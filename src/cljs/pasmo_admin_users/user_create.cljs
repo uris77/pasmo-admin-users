@@ -1,7 +1,15 @@
 (ns pasmo-admin-users.user-create
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [reagent.core :as reagent :refer [atom]]
             [cljsjs.react :as react]
-            [pasmo-admin-users.state :as state]))
+            [cljs-http.client :as http]
+            [cljs.core.async :refer [<!]]
+            [reagent.session :as session]
+            [pasmo-admin-users.users-list :as users-list]
+            [pasmo-admin-users.state :as state]
+            [secretary.core :as secretary :include-macros true]))
+
+(def base-url "/users#")
 
 (defn text-input 
   "A Text Input."
@@ -27,12 +35,26 @@
   (if (empty? (state/get-value :last-name))
     (state/set-error! :last-name "Last Name is empty!")))
 
-(defn validate-form! []
+(defn validate-form! 
+  "Validate the user data being submitted. "
+  []
   (let [new-user state/new-user]
     (swap! new-user assoc-in [:errors] {})
     (validate-first-name!)
     (validate-last-name!)
     (validate-email!)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Create User
+
+(defn- error-handler [{:keys [status status-text]}]
+  (.log js/console (str "something bad happened " status " " status-text)))
+
+(defn- post-form [user]
+  (go (let [resp (<! (http/post "/api/users" {:json-params (get-in @user [:doc])}))] 
+        (swap! user assoc :saved? false)
+        (secretary/dispatch! "/list")
+        (set! (.-location js/window) (str base-url "/list")))))
 
 (defn submit-create-form 
   "Submit the form for creating a new user. The fields are validated before
@@ -41,7 +63,10 @@
   (let [new-user state/new-user]
     (validate-form!)
     (if (empty? (get-in @new-user [:errors]))
-      (swap! new-user assoc [:saved? true]))
+      (do 
+        (swap! new-user assoc :saved? true)
+        (post-form new-user)
+        false))
     false))
 
 (defn- error-messages [new-user-state]
@@ -51,6 +76,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Visual components
+
+(defn is-saved? [item]
+  (true? (get-in @item [:saved?])))
+
+(defn- save-label [item]
+  (if (is-saved? item)
+    "Saving"
+    "Save"))
 
 (defn- list-errors [error]
   [:li error])
@@ -81,5 +114,6 @@
       [:div {:class "form-group"}
        [:div {:class "col-xs-offset-2 col-xs-10"}
         [:button {:class "btn btn-primary btn-lg col-xs-2"
-                 :on-click submit-create-form} "Save"]]]]]))
+                  :disabled (is-saved? new-user)
+                  :on-click submit-create-form} (save-label new-user)]]]]]))
 
