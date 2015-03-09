@@ -25,8 +25,9 @@
      [:td (:last-name user)]
      [:td (:email user)]
      [:td
-      [:button {:class "btn btn-danger"
-                :on-click handle-click!}]]]))
+      [:button {:class "btn btn-danger btn-sm"
+                :on-click handle-click!}
+       [:span {:class "glyphicon glyphicon-trash"}]]]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; View Component
